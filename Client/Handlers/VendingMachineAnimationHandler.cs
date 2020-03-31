@@ -6,12 +6,12 @@ using RAGE.Game;
 
 namespace Client.Handlers
 {
-    public class VendingAnimationHandler : Events.Script
+    public class VendingMachineAnimationHandler : Events.Script
     {
         private RAGE.Elements.Player Player => RAGE.Elements.Player.LocalPlayer;
         private bool IsDictionaryLoaded { get; set; }
         private static string Dictionary => "MINI@SPRUNK@FIRST_PERSON";
-        public VendingAnimationHandler()
+        public VendingMachineAnimationHandler()
         {
             Events.Tick += OnUpdate;
         }
@@ -68,7 +68,7 @@ namespace Client.Handlers
                     Streaming.RemoveAnimDict(Dictionary);
                     Audio.ReleaseAmbientAudioBank();
                     IsDictionaryLoaded = false;
-                    VendingService.SetInUse(false);
+                    VendingMachineService.SetInUse(false);
                 }
             }
         }

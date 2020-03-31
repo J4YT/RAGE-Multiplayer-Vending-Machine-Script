@@ -10,18 +10,18 @@ using Player = RAGE.Elements.Player;
 
 namespace Client.Services
 {
-    public class VendingService : Events.Script
+    public class VendingMachineService : Events.Script
     {
         private Player Player => Player.LocalPlayer;
         private static readonly List<uint> VendingMachines = new List<uint> { Objects.VendingMachine, Objects.VendingMachine2 };
         private static bool IsUsingVendingMachine { get; set; }
         private bool IsNearVendingMachine { get; set; }
-        private VendingAnimationHandler VendingAnimation { get; set; }
-        public VendingService()
+        private VendingMachineAnimationHandler VendingAnimation { get; set; }
+        public VendingMachineService()
         {
             Events.Tick += OnUpdate;
 
-            VendingAnimation = new VendingAnimationHandler();
+            VendingAnimation = new VendingMachineAnimationHandler();
         }
         private void ActivateVendingMachine()
         {
