@@ -10,64 +10,60 @@ using Player = RAGE.Elements.Player;
 
 namespace Client.Services
 {
-    public class VendorService : Events.Script
+    public class VendingService : Events.Script
     {
         private Player Player => Player.LocalPlayer;
-        private static readonly List<uint> VendorMachines = new List<uint> { Objects.VendorMachine, Objects.VendorMachine2 };
-        private static bool IsUsingVendorMachine { get; set; }
-        private bool IsNearVendorMachine { get; set; }
-        private VendorAnimationHandler VendorAnimation { get; set; }
-        public VendorService()
+        private static readonly List<uint> VendingMachines = new List<uint> { Objects.VendingMachine, Objects.VendingMachine2 };
+        private static bool IsUsingVendingMachine { get; set; }
+        private bool IsNearVendingMachine { get; set; }
+        private VendingAnimationHandler VendingAnimation { get; set; }
+        public VendingService()
         {
             Events.Tick += OnUpdate;
 
-            VendorAnimation = new VendorAnimationHandler();
+            VendingAnimation = new VendingAnimationHandler();
         }
-
-        #region Events
-
-        #endregion
-        private void ActivateVendorMachine()
+        private void ActivateVendingMachine()
         {
-            if (IsUsingVendorMachine) return;
+            if (IsUsingVendingMachine) return;
 
-            int? vendorHandle = GetNearestVendorHandle();
+            int? handle = GetNearestVendingHandle();
 
-            if (!vendorHandle.HasValue) return;
+            if (!handle.HasValue) return;
 
-            Vector3 vendorOffset = GetVendorOffsetFromWordCoords(vendorHandle.Value);
+            Vector3 offsetFromWordCoords = GetVendingOffsetFromWordCoords(handle.Value);
 
-            if (vendorOffset == null) return;
+            if (offsetFromWordCoords == null) return;
 
-            Player.LocalPlayer.SetData("IsUsingVendorMachine", new Dictionary<int, bool> { { vendorHandle.Value, true } });
+            Player.LocalPlayer.SetData("IsUsingVendingMachine", new Dictionary<int, bool> { { handle.Value, true } });
 
             Player.SetCurrentWeaponVisible(false, true, true, false);
             Player.SetStealthMovement(false, "DEFAULT_ACTION");
-            Player.TaskLookAtEntity(vendorHandle.Value, 2000, 2048, 2);
+            Player.TaskLookAtEntity(handle.Value, 2000, 2048, 2);
             Player.SetResetFlag(322, true);
-            Player.TaskGoStraightToCoord(vendorOffset.X, vendorOffset.Y, vendorOffset.Z, 1f, 20000, Entity.GetEntityHeading(vendorHandle.Value), 0.1f);
+            Player.TaskGoStraightToCoord(offsetFromWordCoords.X, offsetFromWordCoords.Y, offsetFromWordCoords.Z, 1f, 20000, Entity.GetEntityHeading(handle.Value), 0.1f);
 
-            while (Ai.GetScriptTaskStatus(Player.Handle, 2106541073) != 7 && !Player.IsAtCoord(vendorOffset.X, vendorOffset.Y, vendorOffset.Z, 0.1f, 0.0f, 0.0f, false, true, 0))
+            while (Ai.GetScriptTaskStatus(Player.Handle, 2106541073) != 7 && !Player.IsAtCoord(offsetFromWordCoords.X, offsetFromWordCoords.Y, offsetFromWordCoords.Z, 0.1f, 0.0f, 0.0f, false, true, 0))
             {
                 Invoker.Wait(0);
             }
 
-            VendorAnimation.Start();
+            VendingAnimation.Start();
         }
 
-        private Vector3 GetVendorOffsetFromWordCoords(int vendorHandle)
+        private Vector3 GetVendingOffsetFromWordCoords(int handle)
         {
-            return Entity.GetOffsetFromEntityInWorldCoords(vendorHandle, 0.0f, -0.97f, 0.05f);
+            return Entity.GetOffsetFromEntityInWorldCoords(handle, 0.0f, -0.97f, 0.05f);
         }
-        private int? GetNearestVendorHandle()
+        private int? GetNearestVendingHandle()
         {
-            foreach (var vendormachine in VendorMachines)
+            foreach (var vendingMachine in VendingMachines)
             {
-                var vendorHandle = Object.GetClosestObjectOfType(Player.Position.X, Player.Position.Y, Player.Position.Z, 0.6f, vendormachine, false, false, false);
+                var handle = Object.GetClosestObjectOfType(Player.Position.X, Player.Position.Y, Player.Position.Z, 0.6f, vendingMachine, false, false, false);
 
-                if (Entity.IsAnEntity(vendorHandle))
+                if (Entity.IsAnEntity(handle))
                 {
-                    return vendorHandle;
+                    return handle;
                 }
             }
 
@@ -75,22 +71,22 @@ namespace Client.Services
         }
         private void Listeners()
         {
-            if (Pad.IsControlJustPressed(Constants.AllInputGroups, (int)Control.Context) && IsNearVendorMachine && !IsUsingVendorMachine)
+            if (Pad.IsControlJustPressed(Constants.AllInputGroups, (int)Control.Context) && IsNearVendingMachine && !IsUsingVendingMachine)
             {
-                SetVendorMachineInUse(true);
+                SetVendingMachineInUse(true);
             }
 
-            if (Pad.IsControlJustPressed(Constants.AllInputGroups, (int)Control.FrontendCancel) && IsUsingVendorMachine)
+            if (Pad.IsControlJustPressed(Constants.AllInputGroups, (int)Control.FrontendCancel) && IsUsingVendingMachine)
             {
-                SetVendorMachineInUse(false);
+                SetVendingMachineInUse(false);
             }
         }
 
-        private void SetVendorMachineInUse(bool setInUse)
+        private void SetVendingMachineInUse(bool setInUse)
         {
             if (setInUse)
             {
-                ActivateVendorMachine();
+                ActivateVendingMachine();
             }
             else
             {
@@ -103,38 +99,38 @@ namespace Client.Services
         {
             Listeners();
 
-            if (!IsUsingVendorMachine)
+            if (!IsUsingVendingMachine)
             {
-                var vendorMachine = GetNearestVendorHandle();
+                var handle = GetNearestVendingHandle();
 
-                if (vendorMachine.HasValue && !IsAnyOneUsingVendorMachine(vendorMachine.Value))
+                if (handle.HasValue && !IsAnyOneUsingVendingMachine(handle.Value))
                 {
-                    IsNearVendorMachine = true;
-                    DisplayHelpText(Constants.VendorBuyHelpText);
+                    IsNearVendingMachine = true;
+                    DisplayHelpText(Constants.VendingBuyHelpText);
                 }
 
                 else
                 {
-                    IsNearVendorMachine = false;
+                    IsNearVendingMachine = false;
                 }
             }
         }
 
         public static void SetInUse(bool setInUse)
         {
-            IsUsingVendorMachine = setInUse;
+            IsUsingVendingMachine = setInUse;
 
             if (!setInUse)
             {
-                Player.LocalPlayer.ResetData("IsUsingVendorMachine");
+                Player.LocalPlayer.ResetData("IsUsingVendingMachine");
             }
         }
 
-        private bool IsAnyOneUsingVendorMachine(int vendorHandle)
+        private bool IsAnyOneUsingVendingMachine(int VendingHandle)
         {
             return Entities.Players.Streamed.Any(player =>
-                player.HasData("IsUsingVendorMachine") && player.GetData<Dictionary<int, bool>>("IsUsingVendorMachine")
-                    .ContainsKey(vendorHandle));
+                player.HasData("IsUsingVendingMachine") && player.GetData<Dictionary<int, bool>>("IsUsingVendingMachine")
+                    .ContainsKey(VendingHandle));
         }
 
         protected void DisplayHelpText(string text)
